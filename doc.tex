@@ -146,6 +146,12 @@ In the Stem-and-Leaf plot a single task may have between $0$ and $n$ unique stem
 A stem will only exist if there is at least one leaf. 
 See Figure 3.
 
+\subsubsection*{What stays the same}
+Floating-point numbers will be mapped to tasks in the same way we mapped them with the Histogram 
+(see the \textbf{Communication} section above).  
+The floating-point number $f$ is divided by a $bin\_with$-like value so that each task has a 
+range of values that belong to it's partition.
+
 \includegraphics[scale=.7]{/home/gabe/Pictures/csc-410-exam-2/img3.png}
 
 % floats are mapped to the appropriate tasks using the same function that was used for histograms.
