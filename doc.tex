@@ -52,7 +52,7 @@
 
 \subsection*{Buidling the Histogram}
 \subsubsection*{Partitioning}
-We will partition the array into $n/chunk\_size$ subsections where $n$ is the size of the 
+We will partition the array into $n/chunk\_size$ subsections or `chunks' where $n$ is the size of the 
 array of floats and the parameter $chunk\_size$ is the number of floats per subsection 
 of the original array. If $n$ is not evenly divisible by $chunk\_size$, the remaining 
 subsection will have fewer elements. 
@@ -91,7 +91,7 @@ where
 Basically, the $bin\_width$ is determined by the number of array chunks/partitions and the range
 of the floats in the global array.
 After traversing through the whole sub-array, the task sends a message to all bins. 
-The messages contain the amount that each non-local task should update their local 
+The messages contain the amount that each non-local task should update their 
 $bin\_cnt$ variable. See Figure 2. 
 
 \includegraphics[scale=.6]{/home/gabe/Pictures/csc-410-exam-2/img2.png}
