@@ -73,7 +73,7 @@ the floating-point numbers in an array subsection don’t necessarily ‘belong�
 associated with their task number.   
 This is because, the floats are initially, unsorted and unorganized. And the floating-point
 numbers are still unsorted after partitioning. 
-Therefore, we need communication in order to ‘move’ the floating-point numbers to the right tasks/bins. 
+Therefore, communication is needed to ‘move’ the floating-point numbers to the right tasks/bins. 
 
 \subsubsection*{Communication}
 After the partitions have been created, 
@@ -108,8 +108,8 @@ less likely to be useful.
 
 \subsubsection*{Mapping }
 
-Since the number of tasks and the number of processors are the same, we simply assign 
-task $t$ to a process $p$ such that $t=p$. This mapping was illustrated in Figure 1.
+Since the number of tasks and the number of processors are the same, task $t$
+is assigned/mapped to process $p$ such that $t=p$. This mapping was illustrated in Figure 1.
 
 \subsubsection*{Combining Data in the Root Process}
 The root task will construct a plot from the $bin\_cnt$ of each task. For this to happen, 
@@ -119,13 +119,13 @@ of its floating point numbers and that all messages to other processors have bee
 Once the root process has been pinged this message from all of the processors/tasks, 
 then the root will send back a pong to all of the tasks. 
 The purpose of this pong is to tell every task to send their ‘$bin\_cnt$’ variable to the root task. 
-The reason we need to do a ping-pong before each task simply sends its $bin\_cnt$ variable to the 
-root is that we need to make sure that every message has been completed 
-(i.e. synchronized) before we send the $bin\_cnt$ to the root. 
+The reason the root is pinged before sending $bin\_cnt$ to the root  
+is that we need to make sure that every message to update every $bin\_cnt$ has been completed 
+(i.e. synchronized). 
 
 \subsection*{Extending our approach to the Stem-and-Leaf Plot}
-We will extend the method for parallelizing the histogram to the stem-and-leaf plot.  
-We use the same parameter $chunk\_size$ to partition the array into smaller subsections. 
+Let's extend the method for parallelizing the histogram to the stem-and-leaf plot.  
+The same parameter $chunk\_size$ will be used to partition the array into smaller subsections. 
 However, there are two major modifications. 
 
 \subsubsection*{Hash Tables}
@@ -136,12 +136,12 @@ contain the fractional part of the floating-point numbers.
 
 \subsubsection*{Communication Revisited}
 Secondly, each task will send messages to every other task. 
-But, instead of only sending an integer amount to add to non-local $bin\_cnt$ variables, 
+But, instead of only sending an integer amount to add to other tasks' $bin\_cnt$ variables, 
 each message will contain a list of the actual floating-point numbers, 
-so that each non-local task can process the numbers they receive from other tasks 
-and add them to their own local hash-table. 
-(We could done this (sent the floats themselves) with the histogram, 
-but it was more memory efficient to just send an integer that would update the $bin\_cnt$.)  
+so that each $target\_task$ can process the numbers they receive from other tasks 
+and add them to their local hash-table. 
+(We could have done this (sent the floats themselves) with the histogram, 
+but it was more memory efficient to send an integer that would update the $bin\_cnt$.)  
 In the Stem-and-Leaf plot a single task may have between $0$ and $n$ unique stems.  
 A stem will only exist if there is at least one leaf. 
 See Figure 3.
@@ -150,18 +150,18 @@ See Figure 3.
 Floating-point numbers will be mapped to tasks in the same way we mapped them with the Histogram 
 (see the \textbf{Communication} section above).  
 The floating-point number $f$ is divided by a $bin\_with$-like value so that each task has a 
-range of values that belong to it's partition.
+range of values that belong to its partition.
 
 \includegraphics[scale=.7]{/home/gabe/Pictures/csc-410-exam-2/img3.png}
 
 % floats are mapped to the appropriate tasks using the same function that was used for histograms.
 
 \subsubsection*{Conclusion}
-Now, after writing this all up, I realize that it would have been much easier to extend the 
-method we used to make the Stem-and-Leaf plot to the Histogram. Once all of the 
-floats have been sent to their appropriate tasks, we simply have to count the number 
-of floats in a task to calculate $bin\_cnt$ for a bin in the histogram. Furthermore, 
-we would convert a Stem-and-Leaf plot to a Histogram by putting all of the stems/leafs in
+Now I realize that it would have been much easier to extend the 
+method used to make the Stem-and-Leaf plot to the Histogram. Once all of the 
+floats were sent to their appropriate tasks, we would simply have to count the number 
+of floats in a task to calculate $bin\_cnt$, the size of a bin in the histogram. Furthermore, 
+Stem-and-Leaf plot can be converted to a Histogram by putting all of the stems/leafs in
 the same task into the same bin.
 
 \end{document}
