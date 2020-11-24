@@ -52,72 +52,95 @@
 
 \subsection*{Buidling the Histogram}
 \subsubsection*{Partitioning}
-We will partition the array into $n/chunksize$ subsections where $n$ is the size of the 
-array of floats and the parameter $chunksize$ is the number of floats per subsection 
-of the original array. If $n$ is not evenly divisible by $chunksize$, the remaining 
+We will partition the array into $n/chunk\_size$ subsections where $n$ is the size of the 
+array of floats and the parameter $chunk\_size$ is the number of floats per subsection 
+of the original array. If $n$ is not evenly divisible by $chunk\_size$, the remaining 
 subsection will have fewer elements. 
 
 Each subsection of the array is assigned a task. And, each task corresponds to a 
-unique bin in the histogram. Task i is assigned to bin j such that i=j 
-(i.e. tasks and bins have the same rank/identifier). See figure 1.
+unique bin in the histogram. Moreover, task $i$ is assigned to bin $j$ such that $i=j$. 
+See Figure 1.
 
+\includegraphics[scale=.55]{/home/gabe/Pictures/csc-410-exam-2/img1.png}
 
-Before processing the data, each task has a local variable, cnt, which is initialized 
-to zero. cnt will store the number of floating-point numbers in the bin that is 
-associated with its task. 
+Before processing the data, each task has a local variable, $bin\_cnt$, which is initialized 
+to zero. The local variable $bin\_cnt$ in the $i^{th}$ task will store the number of 
+floating-point numbers in the $i^{th}$ bin. 
 
-However, the floating-point numbers in a subsection don’t necessarily ‘belong’ in 
-the bin associated with their task number. We need communication in order to ‘move’ 
-the floating-point numbers to the right tasks/bins. 
+When the original array of all floating-point numbers is initially partitioned 
+into smaller subsections, 
+the floating-point numbers in an array subsection don’t necessarily ‘belong’ in the bin 
+associated with their task number.   
+This is because, the floats are initially, unsorted and unorganized. And the floating-point
+numbers are still unsorted after partitioning. 
+Therefore, we need communication in order to ‘move’ the floating-point numbers to the right tasks/bins. 
 
 \subsubsection*{Communication}
-Each task will iterate through its own subsection. For any floating-point number f 
+After the partitions have been created, 
+each task will iterate through its own subsection. For any floating-point number $f$ 
 in the subsection, the task calculates which bin it belongs to. The correct bin is 
 calculated by dividing the floating-point number by the $bin\_width$ using integer 
 division: $target\_bin = f / bin\_width$. After traversing through the whole sub-array, 
 the task then sends a message to all bins. 
 The messages contain the amount that each non-local task should update their local 
-count (‘cnt’) variable. See figure 2. 
+count (‘$bin\_cnt$’) variable. See Figure 2. 
+
+\includegraphics[scale=.6]{/home/gabe/Pictures/csc-410-exam-2/img2.png}
 
 \subsubsection*{Agglomeration}
 
 We could have created a task/process for each floating-point number in the array. 
-This is actually possible if the $bin\_width$ is set to 1. However, it’s preferable to 
+This is actually possible if the $chunk\_size$ is set to 1. However, it’s preferable to 
 choose a larger value for $bin\_width$ because it will reduce the number of messages 
-sent between processes. Notice that there will be $O(chunksize^2)$ messages sent 
-between tasks for updating each tasks cnt. Also, the point of the histogram is to 
+sent between processes. Notice that there will be $O(chunk\_size^2)$ messages sent 
+between tasks for updating each task's $bin\_cnt$. Also, the point of the histogram is to 
 combine data points to show groups of similar data. A histogram with so many bins is 
 less likely to be useful.
 
 \subsubsection*{Mapping }
 
 Since the number of tasks and the number of processors are the same, we simply assign 
-task t to a process p such that t=p. This mapping was illustrated in Figure 1.
+task $t$ to a process $p$ such that $t=p$. This mapping was illustrated in Figure 1.
 
 \subsubsection*{Combining Data in the Root Process}
-The root task will construct a plot from the cnt of each task. For this to happen, 
+The root task will construct a plot from the $bin\_cnt$ of each task. For this to happen, 
 the data needs to be retrieved and sent to the root. Once, each task has iterated through 
 its own array, they will ping the root message, indicating that the task has processed all 
 of its floating point numbers and that all messages to other processors have been received. 
 Once the root process has been pinged this message from all of the processors/tasks, 
 then the root will send back a pong to all of the tasks. 
-The purpose of this pong is to tell every task to send their ‘cnt’ variable to the root task. 
-The reason we need to do a ping-pong before each task simply sends its cnt variable to the 
+The purpose of this pong is to tell every task to send their ‘$bin\_cnt$’ variable to the root task. 
+The reason we need to do a ping-pong before each task simply sends its $bin\_cnt$ variable to the 
 root is that we need to make sure that every message has been completed 
-(i.e. synchronized) before we send the cnt to the root. 
+(i.e. synchronized) before we send the $bin\_cnt$ to the root. 
 
+\subsection*{Extending our approach to the Stem-and-Leaf Plot}
+We will extend the method for parallelizing the histogram to the stem-and-leaf plot.  
+We use the same parameter $chunk\_size$ to partition the array into smaller subsections. 
+However, there are two major modifications. 
 
+\subsubsection*{Hash Tables}
+First, each task will maintain a hash-table to store its partition/subsection of the 
+stem-and-leaf plot. The hash table will map keys (stems) to a list of values (leaves).
+The keys are the integer part of the floating-point numbers while the list of values
+contain the fractional part of the floating-point numbers.
 
+\subsubsection*{Communication}
+Secondly, each task will send messages to every other task. 
+But, instead of only sending an integer amount to add to the ‘$bin\_cnt$’, each message will contain 
+a list of the actual floating-point numbers, so that each task can process the numbers 
+and add them to their local hash-table. We could have done the same thing 
+(send the floats themselves) for the histogram, but it was more memory efficient to 
+just send an integer that would update the $bin\_cnt$.  Using this approach, a single task may 
+have between $0$ and $n$ unique stems.  A stem will only exist if there is at least one leaf. 
+See Figure 3.
 
-
-
+\includegraphics[scale=.6]{/home/gabe/Pictures/csc-410-exam-2/img3.png}
 
 
 
 
 \end{document}
-
-
 
 
 
